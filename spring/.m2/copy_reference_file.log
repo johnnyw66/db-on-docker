@@ -1,0 +1,4 @@
+--- Copying files at Mon Feb 11 14:47:21 UTC 2019
+/usr/share/maven/ref/settings-docker.xml
+ /usr/share/maven/ref/settings-docker.xml -> settings-docker.xml
+copy settings-docker.xml to /root/.m2

@@ -1,0 +1,27 @@
+
+buildPropetyList(className,$valueOfProperty) {
+	>> 'Building Property of $className' ;
+	
+	foreach property in className {
+		if (joinAnnonation on property) {
+			buildPropertyList(getClassNameOfProperty(),getValueOfProperty()) {
+		} else if (columnAnnonation on property) {
+				
+		}
+
+	}
+}
+
+PropertyClass {
+	String className ;
+	PropertyValue[] propertyValues
+}
+
+PropertyValue { 
+	
+	Annotations annotations ;
+	propertyClassName,
+	propertyName,
+	actualValue,
+	PropertyValue propertyValue,
+}

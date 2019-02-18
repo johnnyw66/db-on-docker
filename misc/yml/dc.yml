@@ -1,0 +1,46 @@
+version: '3'
+services:    
+ php:
+  build: 
+    context: './docker_php/'
+    args:
+     PHP_VERSION: ${PHP_VERSION}
+  networks:
+    - backend
+  volumes:
+    - ${PROJECT_ROOT}/:/var/www/html/
+  container_name: php
+  
+ apache:
+  build:
+    context: './docker_apache/'
+    args:
+     APACHE_VERSION: ${APACHE_VERSION}
+  depends_on:
+    - php
+    - mysql
+  networks:
+    - frontend
+    - backend
+  ports:
+    - "8080:80"
+  volumes:
+    - ${PROJECT_ROOT}/:/var/www/html/
+  container_name: apache
+    
+ mysql-dev:
+  image: mysql:5.7
+  environment:
+      MYSQL_ROOT_PASSWORD: root 
+      MYSQL_DATABASE: social
+      MYSQL_USER: socialuser
+      MYSQL_PASSWORD: secret
+  ports: 
+     - "3308:3306"
+  container_name: mysql
+networks:
+    frontend:
+    backend:
+  volumes:
+      data:
+     

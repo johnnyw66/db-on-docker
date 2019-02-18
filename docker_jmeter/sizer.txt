@@ -1,0 +1,97 @@
+FROM postgres:9.6.1
+
+VOLUME psql-data
+
+#- ${PWD}/docker_mysql/init:/docker-entrypoint-initdb.d
+POSTGRES_USER
+POSTGRES_DB
+
+
+
+
+Marriages Mar 1854   (>99%)
+HALE	 Catharine Martha m John Thomas Hague Sizer
+
+SIZER, RICHARD  BRITTON  	HALL  
+GRO Reference: 1859  D Quarter in GREENWICH  Volume 01D  Page 598
+
+drupal_1    | [Sat Feb 16 09:40:55.752579 2019] [php7:notice] [pid 24] [client 192.168.48.1:33806] 
+
+
+
+compose-assignment-2 - Problem.
+
+Hi, there.
+
+I'm having a problem with the 'compose assignment 2' and I would appreciate some comments on why my answer
+is 'misbehaving'.
+
+My Bootstrap 3 theme is not installing properly after I set it to 'install and make default' -
+
+When I click on the 'Back to site' link I get a plain white page with the text - 
+
+'The website encountered an unexpected error. Please try again later.'
+
+Drupal Logs indicate the following problem.
+
+Error: Call to undefined method Drupal::time() in /var/www/html/themes/bootstrap/src/Plugin/Provider/ProviderBase.php on line 73 #0 ....
+
+
+I'm sticking to the same versions of Drupal and Postgres and cloning the same Bootstrap branch as outlined in the README.md doc.
+
+I'm using version '3' docker compose to build the images and I'm also creating a single 'drupal' volume instead of the four individual ones
+given in the solution.
+
+I can't see why this would cause a different behaviour from the video solution.
+
+Can anyone give me some suggestions why my Drupal image behaves differently? I've checked that the theme's
+owner:group ids are 'www-data:www-data' (docker container exec -it <container> ls -l ./themes )
+
+Thank you.
+
+John
+
+docker network create --driver bridge alpine-net
+docker run -dit --name alpine1 --network alpine-net alpine ash
+docker run -dit --name alpine2 --network alpine-net alpine ash
+
+docker run -dit --name alpine3 --network bridge alpine ash
+docker run -dit --name alpine4 --network bridge alpine ash
+
+
+# Dockerfile
+
+FROM drupal:8.2
+RUN apt-get update && apt-get install -y git \
+&& rm -rf /var/lib/apt/lists/*
+WORKDIR /var/www/html/themes
+RUN git clone --branch 8.x-3.x --single-branch --depth 1 https://git.drupal.org/project/bootstrap.git \
+&& chown -R www-data:www-data bootstrap
+WORKDIR /var/www/html
+
+
+# docker-compose.yml
+
+version: '3.0'
+services:
+ drupal:
+   build:
+    context: .
+    dockerfile: Dockerfile
+   image: drupal-test
+   ports: 
+    - "8080:80"
+   volumes:
+     - webdata:/var/www/html
+ postgres:
+   image: 
+    postgres:9.6 
+   environment:
+    - POSTGRES_PASSWORD=password
+    - POSTGRES_USER=user
+    - POSTGRES_DB=egdbase
+   volumes:
+       - postgresdata:/var/lib/postgresql/data
+volumes:
+ postgresdata:
+ webdata:

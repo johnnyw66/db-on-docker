@@ -1,0 +1,84 @@
+version: "3.2"
+services:
+  liquibase:
+   build:
+     context: './docker_liquibase'
+   container_name: liquibase
+   networks:
+    - backend
+   volumes:
+    - ${LIQUIBASE_ROOT}/:/usr/local/liquibase/
+  javaweb:
+   build:
+    context: './docker_tomcat'
+    dockerfile: Dockerfile
+   restart: always
+   ports:
+    - "8081:8080"
+   volumes:
+     - ${WEBAPPS_ROOT}/:/usr/local/tomcat/webapps/
+   container_name: tomcat
+   networks:
+    - frontend
+    - backend
+  web:
+   build:
+    context: './docker_python'
+   networks:
+     - backend
+   ports:
+   - "5000:5000"
+   container_name: webpython
+  php:
+    build: 
+      context: './docker_php/'
+      args:
+       PHP_VERSION: ${PHP_VERSION}
+    networks:
+      - backend
+    volumes:
+     - ${PROJECT_ROOT}/:/var/www/html/
+    container_name: php
+  apache:
+    build:
+      context: './docker_apache/'
+      args:
+       APACHE_VERSION: ${APACHE_VERSION}
+    depends_on:
+      - php
+      - mysql
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "8080:80"
+    volumes:
+      - ${PROJECT_ROOT}/:/var/www/html/
+    container_name: apache
+  mysql:
+    image: mysql:${MYSQL_VERSION:-latest}
+    restart: always
+    ports:
+      - "3308:3306"
+    volumes:
+        - mysqldata:/var/lib/mysql
+        - $PWD/docker_mysql/init:/docker-entrypoint-initdb.d
+    networks:
+      - backend
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${DB_NAME}"
+      MYSQL_USER: "${DB_USERNAME}"
+      MYSQL_PASSWORD: "${DB_PASSWORD}"
+    container_name: mysql
+    
+  redis:
+    image: "redis:alpine"
+    networks:
+     - backend
+    container_name: redis    
+networks:
+  frontend:
+  backend:
+volumes:
+    mysqldata:

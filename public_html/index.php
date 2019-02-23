@@ -7,9 +7,9 @@
 	private $var3 ;
 	public function __construct() {
 	
-		$var1='Hello' ;
-		$var2='World!' ;
-		$var3='VAR 3!!' ;
+		$this->var1='Hello' ;
+		$this->var2='World!' ;
+		$this->var3='Wow!!' ;
 				
 	}
 	
@@ -18,7 +18,7 @@
 	public function getVar3() { return $this->var3 ; }
 
 	public function __toString() {
-		return "{$this->var1}" ;
+		return "var1 : ".$this->var1." var2: ".$this->var2." var 3: ".$this->var3 ;
 	}
    }
 
@@ -29,18 +29,27 @@
    $client = $redis->connect('redis', 6379); 
    $redis->incr("counter");
 
+   if ($redis->exists('ddklkjflkjf')) {
+		echo 'IS SET<BR>' ;
+   } else {
+		echo 'IS NOT!!! SET<BR>' ;
+	
+   }
+   //if (null !== ($v = $redis->get("foo:1"))) { echo ">>>>>>>>>>>>>>><<<<<<<<<<<<" ;}
+   //echo " FOOFOO = ".(isset($redis->get("foofoo")) ? 'true' : 'false')."<BR>" ;
+
    $redis->set("foo:1", "bar");
    $redis->set("zoo:1", "bar2");
    $redis->set("zoo:2", "bar3");
-   $redis->set("test", $test) ;
-
+   $redis->set("test", serialize($test)) ;
 
    $arList = $redis->keys("*"); 
    echo "Stored keys in redis::"; 
    print_r($arList); 
    echo " COUNT = ".$redis->get("counter")."<BR>" ;
-
-   var_dump($redis->get('test')) ;
+   $o = unserialize($redis->get('test')) ;
+   echo " TEST =".$o."<BR>" ;
+	
 
    //var_dump($test) ;
 

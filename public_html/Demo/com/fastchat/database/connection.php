@@ -2,7 +2,7 @@
 namespace com\fastchat\database ;
 
 use mysqli ;
-
+use Redis ;
 	interface CachingManagerInf {
 		static public function create() ;
 		public function get($key,$fn) ;
@@ -28,7 +28,7 @@ use mysqli ;
 				var_dump("Reference Singleton") ;
 				
 			}
-                        return self::$instance;
+           return self::$instance;
 		}
 		
 		public function flushAll() {
@@ -40,8 +40,19 @@ use mysqli ;
 		public function flush($key) {
 		}
 		
+
 		public function get($key,$fn) {
-			return $fn($key) ;
+
+		   $redis = new Redis() ; 
+		   $client = $redis->connect('redis', 6379) ; 		
+		   if (!$redis->exists($key)) {
+				$result = $fn($key) ;
+				
+				$redis->set($key,serialize($result)) ;
+				return $result ;
+		   }
+		   return  unserialize($redis->get($key)) ;
+
 		}
 
 	}
@@ -49,7 +60,7 @@ use mysqli ;
 	class SqlHelper { 
 		const SQLSERVER                                     =       "mysql" ;
 		const SQLUSER                                       =       "socialuser" ;
-		const SQLPASSWORD                            		=   "secret" ;
+		const SQLPASSWORD                            		=   	"secret" ;
 		const SQLSCHEMA                                     =       "social" ;
 		
 		private $mysqlSchema ;

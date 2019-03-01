@@ -3,6 +3,8 @@ namespace com\fastchat\database ;
 
 use mysqli ;
 use Redis ;
+
+
 	interface CachingManagerInf {
 		static public function create() ;
 		public function get($key,$fn) ;
@@ -15,15 +17,14 @@ use Redis ;
 	class SimpleCachingManager implements CachingManagerInf {
 	
 		private static $instance ;
-		private $hashTable ;
-		private $cacheon ;
-		
-		private function __construct() {
+		private $tag ;
+		private function __construct($tag = '') {
+			$this->tag = $tag ;	
 		}
 		
-		static public function create() {
+		static public function create($tag = '') {
 			if (!self::$instance) {
-                          self::$instance = new SimpleCachingManager();
+                          self::$instance = new SimpleCachingManager($tag);
 			} else {
 				var_dump("Reference Singleton") ;
 				
@@ -41,20 +42,25 @@ use Redis ;
 		}
 		
 
-		public function get($key,$fn) {
+		public function get($queryKey,$fn) {
 
 		   $redis = new Redis() ; 
-		   $client = $redis->connect('redis', 6379) ; 		
-		   if (!$redis->exists($key)) {
-				$result = $fn($key) ;
-				
-				$redis->set($key,serialize($result)) ;
+		   $client = $redis->connect('redis', 6379) ; 
+		   $taggedKey = $this->getTaggedKey($queryKey) ;
+
+		   if (!$redis->exists($taggedKey)) {
+				$result = $fn($queryKey) ;
+				$redis->set($taggedKey,serialize($result)) ;
 				return $result ;
 		   }
-		   return  unserialize($redis->get($key)) ;
+
+		   return  unserialize($redis->get($taggedKey)) ;
 
 		}
-
+		
+		private function getTaggedKey($key) {
+			return $this->tag.$key ;
+		}
 	}
 	// Simple MySQL Helper - no pooling of connections..
 	class SqlHelper { 
@@ -79,7 +85,7 @@ use Redis ;
                 $this->mysqlUser = ($user != null) ? $user : self::SQLUSER ;
                 $this->mysqlPassword = ($password != null) ? $password : self::SQLPASSWORD;
                 $this->mysqlSchema = ($schema != null) ? $schema : self::SQLSCHEMA;
-				$this->cachingManager = SimpleCachingManager::create() ;
+				$this->cachingManager = SimpleCachingManager::create('@SQL@') ;
 				
 				mysqli_report(MYSQLI_REPORT_STRICT);
         }
@@ -104,10 +110,13 @@ use Redis ;
         }
         
 
-		// 
-        public function buildQueryResult($query) {
+     	public function buildQueryResult($query) {
+			return ($this->cachingManager->get($query,[$this, 'buildSQLQueryResult']));
+       	}
 
-			return ($this->cachingManager->get($query,function($query){
+       
+ 		public function buildSQLQueryResult($query) {
+
                 $res = array() ;
                 $result = $this->mysqli->query($query);
                 if ($result) {
@@ -116,7 +125,6 @@ use Redis ;
                         }
                 }
                 return $res ;
-			})) ;	
         }
 
         public function buildUpdateResult($query) {
